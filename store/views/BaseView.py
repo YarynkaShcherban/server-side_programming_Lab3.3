@@ -1,9 +1,11 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
+
 class BaseViewSet(viewsets.ViewSet):
     repo = None
     serializer_class = None
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete']
 
     def list(self, request):
         items = self.repo.get_all()
@@ -25,12 +27,24 @@ class BaseViewSet(viewsets.ViewSet):
         return Response(serializer.errors, status=400)
 
     def update(self, request, pk=None):
-        serializer = self.serializer_class(data=request.data)
+        item = self.repo.get_by_id(pk)
+        if not item:
+            return Response({'error': f'{self.serializer_class.Meta.model.__name__} not found'}, status=404)
+        serializer = self.serializer_class(item, data=request.data)
         if serializer.is_valid():
-            item = self.repo.update(pk, **serializer.validated_data)
-            if not item:
-                return Response({'error': f'{self.serializer_class.Meta.model.__name__} not found'}, status=404)
-            return Response(self.serializer_class(item).data)
+            updated_item = self.repo.update(pk, **serializer.validated_data)
+            return Response(self.serializer_class(updated_item).data)
+        return Response(serializer.errors, status=400)
+    
+    def partial_update(self, request, pk=None):
+        item = self.repo.get_by_id(pk)
+        if not item:
+            return Response({'error': f'{self.serializer_class.Meta.model.__name__} not found'}, status=404)
+    
+        serializer = self.serializer_class(item, data=request.data, partial=True)  # partial=True для PATCH
+        if serializer.is_valid():
+            updated_item = self.repo.update(pk, **serializer.validated_data)
+            return Response(self.serializer_class(updated_item).data)
         return Response(serializer.errors, status=400)
 
     def destroy(self, request, pk=None):
