@@ -3,10 +3,8 @@ import django
 from datetime import date
 from decimal import Decimal
 
-# Налаштування Django для standalone скрипта
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bookstore_project.settings")
 django.setup()
-
 
 def main():
     from store.repositories.unit_of_work import UnitOfWork
