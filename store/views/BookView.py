@@ -10,6 +10,13 @@ class BookViewSet(BaseViewSet):
     repo = uow.books
     serializer_class = BookSerializer
 
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            book = serializer.save()    
+            return Response(self.serializer_class(book).data, status=201)
+        return Response(serializer.errors, status=400)
+
     @action(detail=False, methods=['get'])
     def cheaper_than(self, request):
         price = request.query_params.get('price')
