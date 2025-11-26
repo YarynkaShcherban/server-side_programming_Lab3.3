@@ -1,0 +1,18 @@
+{% extends 'catalog/base.html' %}
+
+{% block content %}
+<h1 class="mb-4">
+    {% if form.instance.pk %}
+        Редагувати книгу
+    {% else %}
+        Додати нову книгу
+    {% endif %}
+</h1>
+
+<form method="post" class="mb-3">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Зберегти</button>
+    <a class="btn btn-secondary" href="{% url 'catalog:book_list' %}">Назад</a>
+</form>
+{% endblock %}
