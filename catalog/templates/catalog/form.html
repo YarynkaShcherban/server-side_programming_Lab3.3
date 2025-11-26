@@ -1,4 +1,5 @@
 {% extends 'catalog/base.html' %}
+{% load form_tags %}
 
 {% block content %}
 <h1 class="mb-4">
@@ -9,10 +10,48 @@
     {% endif %}
 </h1>
 
-<form method="post" class="mb-3">
+<form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <div class="mb-3">
+        {{ form.name.label_tag }} 
+        {{ form.name|add_class:"form-control" }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.isbn.label_tag }} 
+        {{ form.isbn|add_class:"form-control" }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.price.label_tag }} 
+        {{ form.price|add_class:"form-control" }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.publisher.label_tag }} 
+        {{ form.publisher|add_class:"form-select" }}
+    </div>
+
+    <div class="mb-3">
+        <label>Автори:</label>
+        {% for checkbox in form.author %}
+            <div class="form-check">
+                {{ checkbox.tag }} {{ checkbox.choice_label }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        <label>Жанри:</label>
+        {% for checkbox in form.genres %}
+            <div class="form-check">
+                {{ checkbox.tag }} {{ checkbox.choice_label }}
+            </div>
+        {% endfor %}
+    </div>
+
     <button type="submit" class="btn btn-success">Зберегти</button>
-    <a class="btn btn-secondary" href="{% url 'catalog:book_list' %}">Назад</a>
+    <a href="{% url 'catalog:book_list' %}" class="btn btn-secondary">Назад</a>
 </form>
 {% endblock %}
