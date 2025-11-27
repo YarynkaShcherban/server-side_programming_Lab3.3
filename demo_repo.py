@@ -99,6 +99,31 @@ def main():
         birth_date=date(1899, 7, 21), death_date=date(1976, 7, 2), country="USA"
     )
 
+    author5 = repo.authors.create(
+        first_name="J.K.", last_name="Rowling", pseudonym=None,
+        birth_date=date(1965, 7, 31), death_date=None, country="UK"
+    )
+
+    author6 = repo.authors.create(
+        first_name="Leo", last_name="Tolstoy", pseudonym=None,
+        birth_date=date(1828, 9, 9), death_date=date(1910, 11, 20), country="Russia"
+    )
+
+    author7 = repo.authors.create(
+        first_name="Jane", last_name="Austen", pseudonym=None,
+        birth_date=date(1775, 12, 16), death_date=date(1817, 7, 18), country="UK"
+    )
+
+    author8 = repo.authors.create(
+        first_name="Mark", last_name="Twain", pseudonym=None,
+        birth_date=date(1835, 11, 30), death_date=date(1910, 4, 21), country="USA"
+    )
+
+    author9 = repo.authors.create(
+        first_name="F. Scott", last_name="Fitzgerald", pseudonym=None,
+        birth_date=date(1896, 9, 24), death_date=date(1940, 12, 21), country="USA"
+    )
+
     pub1 = repo.publishers.create(
         name="Penguin", email="contact@penguin.com", phone="1234567890", address="London, UK")
 
@@ -107,6 +132,14 @@ def main():
 
     pub3 = repo.publishers.create(
         name="Knopf Publishing Group", email="info@knopf.com", phone="0979812044", address="New York, USA")
+
+    pub4 = repo.publishers.create(
+        name="Bloomsbury", email="info@bloomsbury.com", phone="01122334455", address="London, UK"
+    )
+
+    pub5 = repo.publishers.create(
+        name="Vintage", email="contact@vintage.com", phone="02233445566", address="New York, USA"
+    )
 
     book1 = repo.books.create(name="Murder on the Orient Express",
                               isbn="9780062693662", price=Decimal("15.00"), publisher=pub2)
@@ -124,6 +157,31 @@ def main():
     book5 = repo.books.create(
         name="The Old Man and the Sea",
         isbn="9780684801223", price=Decimal("13.50"), publisher=pub2)
+    
+    book6 = repo.books.create(
+    name="Harry Potter and the Philosopher's Stone",
+    isbn="9780747532699", price=Decimal("19.99"), publisher=pub4
+)
+
+    book7 = repo.books.create(
+        name="War and Peace",
+        isbn="9780199232765", price=Decimal("22.00"), publisher=pub5
+    )
+
+    book8 = repo.books.create(
+        name="Pride and Prejudice",
+        isbn="9780141439518", price=Decimal("12.50"), publisher=pub5
+    )
+
+    book9 = repo.books.create(
+        name="Adventures of Huckleberry Finn",
+        isbn="9780486280615", price=Decimal("11.00"), publisher=pub5
+    )
+
+    book10 = repo.books.create(
+        name="The Great Gatsby",
+        isbn="9780743273565", price=Decimal("14.50"), publisher=pub5
+    )
 
     client1 = repo.clients.create(
         first_name="Yaryna", last_name="Panychevska", email="pa.yaryna@gmail.com", phone="0979812088")
@@ -136,6 +194,11 @@ def main():
     book3.author.add(author2)
     book4.author.add(author3)
     book5.author.add(author4)
+    book6.author.add(author5) 
+    book7.author.add(author6)  
+    book8.author.add(author7)  
+    book9.author.add(author8)  
+    book10.author.add(author9)
 
     genre1 = repo.genres.create(name="Fiction")
     genre2 = repo.genres.create(name="Mystery")
@@ -144,12 +207,21 @@ def main():
     genre5 = repo.genres.create(name="Dystopian")
     genre6 = repo.genres.create(name="Fantasy")
     genre7 = repo.genres.create(name="Self-Help")
+    genre8 = repo.genres.create(name="Fantasy")
+    genre9 = repo.genres.create(name="Historical")
+    genre10 = repo.genres.create(name="Romance")
+    genre11 = repo.genres.create(name="Classic Literature")
 
     book1.genres.add(genre1, genre2, genre4)
     book2.genres.add(genre1, genre7)
     book3.genres.add(genre1, genre6, genre4)
     book4.genres.add(genre1, genre3, genre5)
     book5.genres.add(genre1, genre3, genre4)
+    book6.genres.add(genre6, genre8)                
+    book7.genres.add(genre1, genre9, genre11)     
+    book8.genres.add(genre1, genre10, genre11)     
+    book9.genres.add(genre1, genre4, genre11)      
+    book10.genres.add(genre1, genre3, genre11)
 
     purchase1 = repo.purchases.create(
         client=client1, employee=employee2, store=store1, total_amount=Decimal("29.00"))
