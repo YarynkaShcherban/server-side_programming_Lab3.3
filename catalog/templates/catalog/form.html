@@ -4,51 +4,86 @@
 {% block content %}
 <h1 class="mb-4">
     {% if form.instance.pk %}
-        Редагувати книгу
+    Редагувати книгу
     {% else %}
-        Додати нову книгу
+    Додати нову книгу
     {% endif %}
 </h1>
 
-<form method="post">
+<form method="post" enctype="multipart/form-data" class="mt-3">
     {% csrf_token %}
 
+    <!-- Назва книги -->
     <div class="mb-3">
-        {{ form.name.label_tag }} 
+        {{ form.name.label_tag }}
         {{ form.name|add_class:"form-control" }}
+        {% if form.name.errors %}
+        <div class="text-danger">{{ form.name.errors }}</div>
+        {% endif %}
     </div>
 
+    <!-- ISBN -->
     <div class="mb-3">
-        {{ form.isbn.label_tag }} 
+        {{ form.isbn.label_tag }}
         {{ form.isbn|add_class:"form-control" }}
+        {% if form.isbn.errors %}
+        <div class="text-danger">{{ form.isbn.errors }}</div>
+        {% endif %}
     </div>
 
+    <!-- Ціна -->
     <div class="mb-3">
-        {{ form.price.label_tag }} 
+        {{ form.price.label_tag }}
         {{ form.price|add_class:"form-control" }}
+        {% if form.price.errors %}
+        <div class="text-danger">{{ form.price.errors }}</div>
+        {% endif %}
     </div>
 
+    <!-- Видавництво -->
     <div class="mb-3">
-        {{ form.publisher.label_tag }} 
+        {{ form.publisher.label_tag }}
         {{ form.publisher|add_class:"form-select" }}
     </div>
 
+    <!-- Автори -->
     <div class="mb-3">
         <label>Автори:</label>
         {% for checkbox in form.author %}
-            <div class="form-check">
-                {{ checkbox.tag }} {{ checkbox.choice_label }}
-            </div>
+        <div class="form-check">
+            {{ checkbox.tag }} {{ checkbox.choice_label }}
+        </div>
         {% endfor %}
     </div>
 
+    <!-- Жанри -->
     <div class="mb-3">
         <label>Жанри:</label>
         {% for checkbox in form.genres %}
-            <div class="form-check">
-                {{ checkbox.tag }} {{ checkbox.choice_label }}
-            </div>
+        <div class="form-check">
+            {{ checkbox.tag }} {{ checkbox.choice_label }}
+        </div>
         {% endfor %}
+    </div>
+
+    <!-- Поточне фото та видалення -->
+    {% if form.instance.pk and form.instance.image %}
+    <div class="mb-3">
+        <label>Поточне фото:</label><br>
+        <img src="{{ form.instance.image.url }}" alt="Book Image" width="200" class="mb-2"><br>
+        <div class="form-check">
+            {{ form.delete_image }} {{ form.delete_image.label_tag }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Завантажити нове фото -->
+    <div class="mb-3">
+        {{ form.image.label_tag }}
+        {{ form.image }}
+        {% if form.image.errors %}
+        <div class="text-danger">{{ form.image.errors }}</div>
+        {% endif %}
     </div>
 
     <button type="submit" class="btn btn-success">Зберегти</button>

@@ -75,7 +75,7 @@ class Publisher(models.Model):
     def __str__(self):
         return self.name
 
-    
+
 class Book(models.Model):
     book_id = models.AutoField(primary_key=True)
     name = models.TextField()
@@ -86,12 +86,14 @@ class Book(models.Model):
         Publisher, on_delete=models.SET_NULL, null=True, db_column='publisher_id')
     author = models.ManyToManyField(
         'Author', through='AuthorBook', related_name='books')
+    image = models.ImageField(upload_to='book_images/', blank=True, null=True)
 
     class Meta:
         db_table = 'book'
 
     def str(self):
         return self.name
+
 
 class Genre(models.Model):
     genre_id = models.AutoField(primary_key=True)
@@ -121,7 +123,7 @@ class Author(models.Model):
 
     def str(self):
         return f"{self.first_name} {self.last_name}"
-    
+
 
 class AuthorBook(models.Model):
     author = models.ForeignKey(

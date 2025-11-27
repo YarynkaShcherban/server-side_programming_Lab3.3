@@ -88,14 +88,16 @@ WSGI_APPLICATION = 'bookstore_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bookstore',          
-        'USER': 'postgres',           
-        'PASSWORD': '516783',   
-        'HOST': 'localhost',           
+        'NAME': 'bookstore',
+        'USER': 'postgres',
+        'PASSWORD': '1372',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
