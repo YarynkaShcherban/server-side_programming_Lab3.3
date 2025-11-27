@@ -50,10 +50,37 @@ def book_list(request):
             .prefetch_related("author", "genres")
             .annotate(num_authors=Count("author"))
         )
-        return render(request, "catalog/list.html", {"books": books})
+        genres = Genre.objects.all()
+        context = {
+            "books": books,
+            "genres": genres,
+            "current_genre": None
+        }
+        return render(request, "catalog/list.html", context)
     except Exception as ex:
         print("Помилка list:", ex)
         return HttpResponseServerError()
+    
+def book_list_by_genre(request, genre_id):
+    current_genre = get_object_or_404(Genre, genre_id=genre_id)
+    books = Book.objects.filter(genres=current_genre)
+    genres = Genre.objects.all()
+    return render(request, 'catalog/list.html', {
+        'books': books,
+        'genres': genres,
+        'current_genre': current_genre
+    })
+
+
+def book_list_by_publisher(request, publisher_id):
+    current_publisher = get_object_or_404(Publisher, publisher_id=publisher_id)
+    books = Book.objects.filter(publisher=current_publisher)
+    publishers = Publisher.objects.all()
+    return render(request, 'catalog/list.html', {
+        'books': books,
+        'publishers': publishers,
+        'current_publisher': current_publisher
+    })
 
 def book_stats(request):
     stats = get_book_stats()
@@ -84,14 +111,16 @@ def book_detail(request, book_id):
 
 def book_create(request):
     try:
-        if request.method != "POST":
+        if request.method == "POST":
+            form = BookForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                return redirect("catalog:book_list")
+            else:
+                return HttpResponseBadRequest("Форма містить помилки")
+        else:
             form = BookForm()
-            return render(request, "catalog/form.html", {"form": form})
-        form = BookForm(request.POST)
-        if not form.is_valid():
-            return HttpResponseBadRequest("Форма містить помилки")
-        form.save()
-        return redirect("catalog:book_list")
+        return render(request, "catalog/form.html", {"form": form})
     except Exception as ex:
         print("Помилка create:", ex)
         return HttpResponseServerError()
@@ -99,14 +128,16 @@ def book_create(request):
 def book_update(request, book_id):
     try:
         book = get_object_or_404(Book, book_id=book_id)
-        if request.method != "POST":
-            form = BookForm(instance=book)
-            return render(request, "catalog/form.html", {"form": form})
-        form = BookForm(request.POST, instance=book)
-        if not form.is_valid():
-            return HttpResponseBadRequest("Форма містить помилки")
-        form.save()
-        return redirect("catalog:book_detail", book_id=book_id)
+        if request.method == "POST":
+            form = BookForm(request.POST, request.FILES, instance=book)
+            if form.is_valid():
+                form.save()
+                return redirect("catalog:book_detail", book_id=book_id)
+            else:
+                return HttpResponseBadRequest("Форма містить помилки")
+        else:
+            form = BookForm(instance=book) 
+        return render(request, "catalog/form.html", {"form": form})
     except Exception as ex:
         print("Помилка update:", ex)
         return HttpResponseServerError()
