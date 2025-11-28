@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'store',
     'rest_framework',
-    'catalog',
 ]
 
 REST_FRAMEWORK = {
