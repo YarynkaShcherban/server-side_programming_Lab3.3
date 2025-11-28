@@ -8,12 +8,7 @@
     <li class="list-group-item"><strong>Видавець:</strong> {{ book.publisher }}</li>
     <li class="list-group-item"><strong>Автори:</strong>
         {% for author in book.author.all %}
-            {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
-        {% endfor %}
-    </li>
-    <li class="list-group-item"><strong>Жанри:</strong>
-        {% for genre in book.genres.all %}
-            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+            {{ author.name }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
     </li>
 </ul>
