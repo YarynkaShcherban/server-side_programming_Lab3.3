@@ -27,51 +27,9 @@ class PublisherSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class BookSerializer(serializers.ModelSerializer):
-    authors = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True,
-        required=False
-    )
-    genres = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True,
-        required=False
-    )
-    genre_list = serializers.SerializerMethodField(read_only=True)
-    author_list = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = Book
-        fields = [
-            'book_id',
-            'name',
-            'isbn',
-            'price',
-            'publisher',
-            'authors',   
-            'genres',     
-            'genre_list',
-            'author_list'
-        ]
-
-    def get_genre_list(self, obj):
-        genre_books = GenreBook.objects.filter(book=obj).select_related('genre')
-        return [gb.genre.name for gb in genre_books if gb.genre is not None]
-
-    def get_author_list(self, obj):
-        author_books = AuthorBook.objects.filter(book=obj).select_related('author')
-        return [ab.author_id for ab in author_books if ab.author is not None]
-
-    def create(self, validated_data):
-        author_ids = validated_data.pop('authors', [])
-        genre_ids = validated_data.pop('genres', [])
-
-        book = Book.objects.create(**validated_data)
-        for a_id in author_ids:
-            AuthorBook.objects.create(author_id=a_id, book=book)
-        for g_id in genre_ids:
-            GenreBook.objects.create(genre_id=g_id, book=book)
-        return book
+        fields = '__all__'
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
