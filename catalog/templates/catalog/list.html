@@ -1,61 +1,40 @@
 {% extends 'catalog/base.html' %}
 
 {% block content %}
-<h1 class="mb-4">
-    {% if current_genre %}
-    Книги жанру: {{ current_genre.name }}
-    {% else %}
-    Список усіх книг
-    {% endif %}
-</h1>
+<h1 class="mb-4">Список книг</h1>
+<a class="btn btn-primary mb-3" href="{% url 'catalog:book_create' %}">Додати нову книгу</a>
 
-{% if current_genre %}
-<p class="text-muted">
-    <a href="{% url 'catalog:book_list' %}">Показати всі книги</a>
-</p>
-{% endif %}
-
-<a class="btn btn-primary mb-4" href="{% url 'catalog:book_create' %}">Додати нову книгу</a>
-
-<div class="d-flex flex-wrap gap-4">
-
-    {% for book in books %}
-    <div class="card shadow-sm rounded-4 d-inline-block">
-
-        {% if book.image %}
-        <img src="{{ book.image.url }}" class="card-img-top rounded-top-4"
-            style="width: 254px; height: 390px; object-fit: cover;">
-        {% else %}
-        <div class="bg-light d-flex justify-content-center align-items-center rounded-top-4"
-            style="width: 254px; height: 390px;">
-            <span class="text-muted">Немає фото</span>
-        </div>
-        {% endif %}
-
-        <div class="card-body" style="width: 254px;">
-            <h5 class="card-title fw-bold">{{ book.name }}</h5>
-
-            <p class="mb-1">
-                <strong>Автор:</strong>
-                {% for a in book.author.all %}
-                {{ a.first_name }} {{ a.last_name }}{% if not forloop.last %}, {% endif %}
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Назва</th>
+            <th>ISBN</th>
+            <th>Ціна</th>
+            <th>Видавець</th>
+            <th>Автори</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for book in books %}
+        <tr>
+            <td>{{ book.book_id }}</td>
+            <td><a href="{% url 'catalog:book_detail' book.book_id %}">{{ book.name }}</a></td>
+            <td>{{ book.isbn }}</td>
+            <td>{{ book.price }}</td>
+            <td>{{ book.publisher }}</td>
+            <td>
+                {% for author in book.author.all %}
+                    {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
                 {% endfor %}
-            </p>
-
-            <p class="mb-1"><strong>Ціна:</strong> {{ book.price }}</p>
-            <p class="mb-1"><strong>Видавництво:</strong> {{ book.publisher }}</p>
-            <p class="mb-1"><strong>ISBN:</strong> {{ book.isbn }}</p>
-
-            <div class="mt-3 d-flex flex-wrap gap-2">
-                <a class="btn btn-primary btn-sm" href="{% url 'catalog:book_detail' book.book_id %}">Деталі</a>
-                <a class="btn btn-warning btn-sm" href="{% url 'catalog:book_update' book.book_id %}">Редагувати</a>
-                <a class="btn btn-danger btn-sm" href="{% url 'catalog:book_delete' book.book_id %}">Видалити</a>
-            </div>
-        </div>
-    </div>
-    {% empty %}
-    <div class="alert alert-info mt-4">Не знайдено книг за цими критеріями.</div>
-    {% endfor %}
-
-</div>
+            </td>
+            <td>
+                <a class="btn btn-sm btn-warning" href="{% url 'catalog:book_update' book.book_id %}">Редагувати</a>
+                <a class="btn btn-sm btn-danger" href="{% url 'catalog:book_delete' book.book_id %}">Видалити</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

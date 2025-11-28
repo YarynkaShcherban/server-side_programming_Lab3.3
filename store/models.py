@@ -86,7 +86,6 @@ class Book(models.Model):
         Publisher, on_delete=models.SET_NULL, null=True, db_column='publisher_id')
     author = models.ManyToManyField(
         'Author', through='AuthorBook', related_name='books')
-    image = models.ImageField(upload_to='book_images/', blank=True, null=True)
 
     class Meta:
         db_table = 'book'
