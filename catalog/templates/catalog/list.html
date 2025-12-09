@@ -24,7 +24,7 @@
     <div class="card shadow-sm rounded-4 d-inline-block">
 
         {% if book.image %}
-        <img src="{{ book.image.url }}" class="card-img-top rounded-top-4"
+        <img src="http://127.0.0.1:8000{{ book.image }}" class="card-img-top rounded-top-4"
             style="width: 254px; height: 390px; object-fit: cover;">
         {% else %}
         <div class="bg-light d-flex justify-content-center align-items-center rounded-top-4"
