@@ -99,10 +99,10 @@ def book_stats(request):
         return render(request, "errors/500.html", status=500)
 
 
-# треба якимось чином через API робити
+# Робе через API
 def book_detail(request, book_id):
     try:
-        book = book_repo.get_by_id_with_related(
+        book = book_api.get_by_id_with_related(
             book_id)  # ЦЕ НОВА ФУНКЦІЯ в BookRepo!
         if not book:
             return render(request, "errors/404.html", status=404)

@@ -84,6 +84,10 @@ class BookApiManager:
     def get_books_by_publisher(self, publisher_id: int):
         return self.client.get("books/", data={"publisher": publisher_id})
 
+# ПРАЦЮЄ
+    def get_by_id_with_related(self, book_id: int):
+        return self.client.get(f"books/{book_id}/details/")
+
 
 class GenreApiManager:
     def __init__(self, client):

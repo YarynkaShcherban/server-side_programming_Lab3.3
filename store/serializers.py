@@ -33,7 +33,6 @@ class PublisherSerializer(serializers.ModelSerializer):
 
 
 class BookSerializer(serializers.ModelSerializer):
-
     authors = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
@@ -44,8 +43,11 @@ class BookSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+
+    # read-only fields for the API response
     genre_list = serializers.SerializerMethodField(read_only=True)
     author_list = serializers.SerializerMethodField(read_only=True)
+    publisher_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Book
@@ -54,7 +56,8 @@ class BookSerializer(serializers.ModelSerializer):
             'name',
             'isbn',
             'price',
-            'publisher',
+            'publisher',         # still ID for writes
+            'publisher_name',    # name for reads
             'authors',
             'genres',
             'genre_list',
@@ -65,12 +68,16 @@ class BookSerializer(serializers.ModelSerializer):
     def get_genre_list(self, obj):
         genre_books = GenreBook.objects.filter(
             book=obj).select_related('genre')
-        return [gb.genre.name for gb in genre_books if gb.genre is not None]
+        return [{"id": gb.genre.genre_id, "name": gb.genre.name} for gb in genre_books if gb.genre]
 
     def get_author_list(self, obj):
         author_books = AuthorBook.objects.filter(
             book=obj).select_related('author')
-        return [ab.author_id for ab in author_books if ab.author is not None]
+        return [{"id": ab.author.author_id, "first_name": ab.author.first_name, "last_name": ab.author.last_name}
+                for ab in author_books if ab.author]
+
+    def get_publisher_name(self, obj):
+        return obj.publisher.name if obj.publisher else None
 
     def create(self, validated_data):
         author_ids = validated_data.pop('authors', [])

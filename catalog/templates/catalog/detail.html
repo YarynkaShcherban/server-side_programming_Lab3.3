@@ -5,7 +5,7 @@
 
 {% if book.image %}
 <div class="mb-3">
-    <img src="{{ book.image.url }}" alt="Book Image" class="img-fluid" style="max-width: 300px;">
+    <img src="http://127.0.0.1:8000{{ book.image }}" alt="Book Image" class="img-fluid" style="max-width: 300px;">
 </div>
 {% endif %}
 
@@ -14,18 +14,18 @@
     <li class="list-group-item"><strong>Ціна:</strong> {{ book.price }}</li>
     <li class="list-group-item">
         <strong>Видавець:</strong>
-        <a href="{% url 'catalog:book_list_by_publisher' book.publisher.publisher_id %}" class="text-decoration-none">
-            {{ book.publisher }}
+        <a href="{% url 'catalog:book_list_by_publisher' book.publisher%}" class="text-decoration-none">
+            {{ book.publishe_name }}
         </a>
     </li>
     <li class="list-group-item"><strong>Автори:</strong>
-        {% for author in book.author.all %}
+        {% for author in book.author_list%}
         {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
     </li>
     <li class="list-group-item"><strong>Жанри:</strong>
-        {% for genre in book.genres.all %}
-        <a href="{% url 'catalog:book_list_by_genre' genre.genre_id %}"
+        {% for genre in book.genre_list%}
+        <a href="{% url 'catalog:book_list_by_genre' genre.id %}"
             class="badge bg-info text-decoration-none text-white">{{ genre.name }}</a>
         {% if not forloop.last %},
         {%endif %}
