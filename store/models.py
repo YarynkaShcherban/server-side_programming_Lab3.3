@@ -83,7 +83,7 @@ class Book(models.Model):
     price = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True)
     publisher = models.ForeignKey(
-        Publisher, on_delete=models.SET_NULL, null=True, db_column='publisher_id')
+        Publisher, on_delete=models.SET_NULL, null=True, db_column='publisher_id', related_name='books')
     author = models.ManyToManyField(
         'Author', through='AuthorBook', related_name='books')
     image = models.ImageField(upload_to='book_images/', blank=True, null=True)

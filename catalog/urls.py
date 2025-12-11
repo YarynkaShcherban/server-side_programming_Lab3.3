@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .ApiManager import book_overall_stats, genre_stats, publisher_stats
 
 app_name = "catalog"
 
@@ -15,4 +16,7 @@ urlpatterns = [
     path('<int:book_id>/delete/', views.book_delete, name='book_delete'),
     path('stats/', views.book_stats, name='book_stats'),
     path('<int:book_id>/details/', views.book_detail, name='book_detail'),
+    path("books/stats/overall/", views.book_overall_stats),
+    path("genres/stats/", views.genre_stats),
+    path("publishers/stats/", views.publisher_stats),
 ]

@@ -71,54 +71,37 @@ def book_list_by_publisher(request, publisher_id):
     except Exception as ex:
         print("Помилка API:", ex)
         return render(request, "errors/500.html", status=500)
-
-
-# # треба якимось чином через API робити
-# def get_book_stats():
-#     return {
-#         "overall": book_repo.get_overall_stats(),
-#         "genres": genre_repo.get_stats(),
-#         "publishers": publisher_repo.get_stats(),
-#     }
-
-
-# # треба якимось чином через API робити
-# def book_stats(request):
-#     try:
-#         stats = get_book_stats()
-#         books = book_repo.get_all_with_related()
-#         return render(request, "catalog/stats.html", {
-#             "stats": stats,
-#             "books": books,
-#         })
-#     except Exception as ex:
-#         print("Помилка stats:", ex)
-#         return render(request, "errors/500.html", status=500)
     
-
 def get_book_stats():
-    try:
-        return {
-            "overall": book_api.client.get("books/stats/overall/"),
-            "genres": genre_api.client.get("genres/stats/"),
-            "publishers": publisher_api.client.get("publishers/stats/"),
-        }
-    except Exception as ex:
-        print("Помилка get_book_stats:", ex)
-        return {
-            "overall": {},
-            "genres": {},
-            "publishers": {},
-        }
+    stats = {
+        "overall": {},
+        "genres": [],
+        "publishers": [],
+    }
+
+    overall = book_api.client.get("catalog/books/stats/overall/")
+    if isinstance(overall, dict) and not overall.get("error"):
+        stats["overall"] = overall
+    else:
+        stats["overall"] = {"avg_price": 0, "total_books": 0}
+
+    genres = genre_api.client.get("catalog/genres/stats/")
+    if isinstance(genres, list):
+        stats["genres"] = genres
+
+    publishers = publisher_api.client.get("catalog/publishers/stats/")
+    if isinstance(publishers, list):
+        stats["publishers"] = publishers
+    return stats
 
 def book_stats(request):
     try:
         stats = get_book_stats()
-        books = []
         try:
             books = book_api.get_all_books()
         except Exception as ex_books:
             print("Помилка завантаження books через API:", ex_books)
+            books = []
 
         return render(request, "catalog/stats.html", {
             "stats": stats,
@@ -149,61 +132,53 @@ def book_detail(request, book_id):
         print("Помилка detail:", ex)
         return render(request, "errors/400.html", status=400)
 
+#не працює через api
+def book_update(request, book_id):
+    try:
+        book = book_repo.get_by_id(book_id)
+        if not book:
+            return render(request, "errors/404.html", status=404)
+
+        if request.method == "POST":
+            form = BookForm(request.POST, request.FILES, instance=book)
+            if form.is_valid():
+                form.save()
+                return redirect("catalog:book_detail", book_id=book_id)
+            return render(request, "errors/400.html", status=400)
+        form = BookForm(instance=book)
+        return render(request, "catalog/form.html", {"form": form})
+    except Exception as ex:
+        print("Помилка update:", ex)
+        return render(request, "errors/500.html", status=500)
+
+
 def book_create(request):
+    response = None
     try:
         if request.method == "POST":
             form = BookForm(request.POST, request.FILES)
             if form.is_valid():
                 data = form.cleaned_data
+
+                data['authors'] = [a.author_id for a in data.pop('author', [])]
+                data['genres'] = [g.genre_id for g in data.pop('genres', [])]
+                data['publisher'] = data['publisher'].publisher_id
+
                 image_file = request.FILES.get("image")
                 response = book_api.create(
                     data=data,
                     image_file=image_file
                 )
-                if "id" in response:
+                print("API create response:", response) 
+                if response and response.get("book_id"):
                     return redirect("catalog:book_list")
-                return render(request, "errors/400.html", status=400)
+                else:
+                    return render(request, "errors/400.html", {"response": response}, status=400)
+
         form = BookForm()
         return render(request, "catalog/form.html", {"form": form})
     except Exception as ex:
         print("Помилка create:", ex)
-        return render(request, "errors/500.html", status=500)
-
-
-def book_update(request, book_id):
-    try:
-        book = book_api.get_by_id(book_id)
-        if not book :
-            return render(request, "errors/404.html", status=404)
-        if request.method == "POST":
-            form = BookForm(request.POST, request.FILES)
-
-            if form.is_valid():
-                data = form.cleaned_data
-                image_file = request.FILES.get("image")
-                response = book_api.update(
-                    book_id=book_id,
-                    data=data,
-                    image_file=image_file
-                )
-                if "id" in response:
-                    return redirect("catalog:book_detail", book_id=book_id)
-                return render(request, "errors/400.html", status=400)
-        else:
-            form = BookForm()
-            author_ids = [a["id"] for a in book.get("author_list", [])]
-            genre_ids = [g["id"] for g in book.get("genre_list", [])]
-            form.fields['author'].initial = Author.objects.filter(author_id__in=author_ids)
-            form.fields['genres'].initial = Genre.objects.filter(genre_id__in=genre_ids)
-
-            simple_fields = ['name', 'isbn', 'price', 'publisher', 'image']
-            for field in simple_fields:
-                if field in book:
-                    form.fields[field].initial = book[field]
-
-        return render(request, "catalog/form.html", {"form": form})
-    except Exception as ex:
-        print("Помилка update:", ex)
         return render(request, "errors/500.html", status=500)
 
 

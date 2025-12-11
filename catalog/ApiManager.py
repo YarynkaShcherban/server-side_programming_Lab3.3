@@ -31,7 +31,8 @@ class ApiManager:
         )
 
         return response.json()
-
+    
+#не працює
     def put(self, endpoint: str, data: Dict, files=None):
         full_url = self.url + endpoint
         headers = {'x-api-key': self._api_key}
@@ -41,7 +42,6 @@ class ApiManager:
         )
 
         return response.json()
-
 
     def delete(self, endpoint: str):
         full_url = self.url + endpoint
@@ -62,13 +62,31 @@ class BookApiManager:
 
     def get_by_id(self, book_id: int):
         return self.client.get(f"books/{book_id}/")
+    
+    # def create(self, data: Dict[str, Any], image_file=None):
+    #     files = {"image": image_file} if image_file else None
+    #     return self.client.post("books/", data=data, files=files)
 
+    # def update(self, book_id: int, data: Dict[str, Any], image_file=None):
+    #     files = {"image": image_file} if image_file else None
+    #     return self.client.put(f"books/{book_id}/", data=data, files=files)
+    
     def create(self, data: Dict[str, Any], image_file=None):
-        files = {"image": image_file} if image_file else None
+        files = None
+        if image_file:
+            image_file.seek(0)
+            files = {
+                "image": (image_file.name, image_file.read(), image_file.content_type)
+            }
         return self.client.post("books/", data=data, files=files)
 
     def update(self, book_id: int, data: Dict[str, Any], image_file=None):
-        files = {"image": image_file} if image_file else None
+        files = None
+        if image_file:
+            image_file.seek(0)
+            files = {
+                "image": (image_file.name, image_file.read(), image_file.content_type)
+            }
         return self.client.put(f"books/{book_id}/", data=data, files=files)
 
     def delete(self, book_id: int):
@@ -86,7 +104,7 @@ class BookApiManager:
     
     def get_by_id_with_related(self, book_id: int):
         return self.client.get(f"books/{book_id}/details/")
-
+    
 
 class GenreApiManager:
     def __init__(self, client):
@@ -108,6 +126,38 @@ class PublisherApiManager:
 
     def get_by_id(self, publisher_id: int):
         return self.client.get(f"publishers/{publisher_id}/")
+
+# Для статистики
+@api_view(['GET'])
+def book_overall_stats(request):
+    data = Book.objects.aggregate(
+        avg_price=Avg('price'),
+        total_books=Count('book_id')
+    )
+    data['avg_price'] = round(data['avg_price'] or 0, 2)
+    return Response(data)
+
+@api_view(['GET'])
+def genre_stats(request):
+    genres = Genre.objects.annotate(
+        avg_price=Avg('book__price'),
+        num_books=Count('book')
+    ).values('name', 'avg_price', 'num_books')
+
+    for g in genres:
+        g['avg_price'] = round(g['avg_price'] or 0, 2)
+    return Response(list(genres))
+
+@api_view(['GET'])
+def publisher_stats(request):
+    publishers = Publisher.objects.annotate(
+        avg_price=Avg('books__price'),
+        num_books=Count('books')
+    ).values('name', 'avg_price', 'num_books')
+
+    for p in publishers:
+        p['avg_price'] = round(p['avg_price'] or 0, 2)
+    return Response(list(publishers))
 
 
 api_manager = ApiManager()

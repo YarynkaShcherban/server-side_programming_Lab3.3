@@ -31,11 +31,13 @@ class BookRepo(BaseRepo):
     def get_all_with_related(self):
         return self.model.objects.select_related("publisher").prefetch_related("author", "genres").annotate(num_authors=Count("author"))
 
-    def get_overall_stats(self):
-        overall = self.model.objects.aggregate(
-            avg_price=Avg('price'),
-            total_books=Count('book_id')
-        )
-        if overall["avg_price"] is not None:
-            overall["avg_price"] = round(overall["avg_price"], 2)
-        return overall
+# Більше не треба
+
+    # def get_overall_stats(self):
+    #     overall = self.model.objects.aggregate(
+    #         avg_price=Avg('price'),
+    #         total_books=Count('book_id')
+    #     )
+    #     if overall["avg_price"] is not None:
+    #         overall["avg_price"] = round(overall["avg_price"], 2)
+    #     return overall

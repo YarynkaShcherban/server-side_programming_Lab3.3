@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from .models import *
 
 
@@ -77,32 +78,40 @@ class BookSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         author_ids = validated_data.pop('authors', [])
         genre_ids = validated_data.pop('genres', [])
-
         book = Book.objects.create(**validated_data)
-        for a_id in author_ids:
-            AuthorBook.objects.create(author_id=a_id, book=book)
-        for g_id in genre_ids:
-            GenreBook.objects.create(genre_id=g_id, book=book)
+        self._set_m2m_relationships(book, author_ids, genre_ids)
         return book
-    
+
     def update(self, instance, validated_data):
         author_ids = validated_data.pop('authors', None)
         genre_ids = validated_data.pop('genres', None)
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
-        if author_ids is not None:
-            AuthorBook.objects.filter(book=instance).delete()
-            for a_id in author_ids:
-                AuthorBook.objects.create(author_id=a_id, book=instance)
-
-        if genre_ids is not None:
-            GenreBook.objects.filter(book=instance).delete()
-            for g_id in genre_ids:
-                GenreBook.objects.create(genre_id=g_id, book=instance)
+        self._set_m2m_relationships(instance, author_ids, genre_ids, is_update=True)
         return instance
+    
+    def _set_m2m_relationships(self, book, author_ids, genre_ids, is_update=False):
+        if author_ids is not None or not is_update:
+            if is_update:
+                AuthorBook.objects.filter(book=book).delete() 
+            author_books_to_create = []
+            for a_id in author_ids:
+                author_books_to_create.append(
+                    AuthorBook(author_id=a_id, book=book)
+                )
+            AuthorBook.objects.bulk_create(author_books_to_create)
+        
+        if genre_ids is not None or not is_update:
+            if is_update:
+                GenreBook.objects.filter(book=book).delete() 
+            genre_books_to_create = []
+            for g_id in genre_ids:
+                genre_books_to_create.append(
+                    GenreBook(genre_id=g_id, book=book)
+                )
+            GenreBook.objects.bulk_create(genre_books_to_create) 
+
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
