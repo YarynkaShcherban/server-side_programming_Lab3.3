@@ -8,8 +8,16 @@ class BaseViewSet(viewsets.ViewSet):
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
 
     def list(self, request):
-        items = self.repo.get_all()
-        serializer = self.serializer_class(items, many=True)
+        queryset = self.repo.get_all()
+        publisher_id = request.query_params.get("publisher")
+        genre_id = request.query_params.get("genre")
+
+        if publisher_id:
+            queryset = queryset.filter(publisher_id=publisher_id)
+        if genre_id:
+            queryset = queryset.filter(genres__genre_id=genre_id)
+
+        serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):

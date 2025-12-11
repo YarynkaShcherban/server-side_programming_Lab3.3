@@ -13,7 +13,7 @@ class BookViewSet(BaseViewSet):
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            book = serializer.save()    
+            book = serializer.save()
             return Response(self.serializer_class(book).data, status=201)
         return Response(serializer.errors, status=400)
 
@@ -42,4 +42,12 @@ class BookViewSet(BaseViewSet):
             return Response({'error': 'name parameter required'}, status=400)
         books = uow.books.find_by_name(name)
         serializer = BookSerializer(books, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def details(self, request, pk):
+        book = uow.books.get_by_id_with_related(pk)
+        if not book:
+            return Response({"Book not found"})
+        serializer = BookSerializer(book)
         return Response(serializer.data)
