@@ -12,6 +12,10 @@ from .ApiManager import *
 from store.repositories.BookRepo import BookRepo
 from store.repositories.GenreRepo import GenreRepo
 from store.repositories.PublisherRepo import PublisherRepo
+import pandas as pd
+from plotly.offline import plot
+import plotly.express as px
+from store.repositories.StatsRepo import StatsRepo
 
 
 book_repo = BookRepo()
@@ -195,6 +199,79 @@ def book_delete(request, book_id):
     except Exception as ex:
         print("Помилка API:", ex)
         return render(request, "errors/500.html", status=500)
+
+
+
+def get_dashboard_figures():
+
+    genres_df = pd.DataFrame(list(StatsRepo.genres_with_books_and_avg_price()))
+    fig_genres_count = px.bar(genres_df, x='name', y='num_books', title="Кількість книг по жанрах") if not genres_df.empty else None
+    fig_genres_price = px.line(genres_df, x='name', y='avg_price', title="Середня ціна книг по жанрах") if not genres_df.empty else None
+
+    authors_df = pd.DataFrame(list(StatsRepo.authors_avg_book_price()))
+    fig_authors_price = px.bar(authors_df, x='last_name', y='avg_price', title="Середня ціна книг по авторах") if not authors_df.empty else None
+    top_authors_df = pd.DataFrame(list(StatsRepo.top_authors_by_book_count()))
+    fig_top_authors = px.bar(top_authors_df, x='last_name', y='num_books', title="Топ авторів за кількістю книг") if not top_authors_df.empty else None
+
+    publishers_df = pd.DataFrame(list(StatsRepo.publishers_avg_price()))
+    fig_publishers_price = px.bar(publishers_df, x='name', y='avg_price', title="Середня ціна книг по видавництвах") if not publishers_df.empty else None
+    expensive_pub_df = pd.DataFrame(list(StatsRepo.expensive_publishers()))
+    fig_expensive_pub = px.pie(expensive_pub_df, names='name', values='avg_price', title="Дорогі видавництва") if not expensive_pub_df.empty else None
+
+    stores_df = pd.DataFrame(list(StatsRepo.store_sales_stats()))
+    fig_store_sales = px.bar(stores_df, x='name', y='total_sales', title="Сума продажів по магазинах") if not stores_df.empty else None
+    fig_store_count = px.bar(stores_df, x='name', y='total_purchases', title="Кількість продажів по магазинах") if not stores_df.empty else None
+
+    return {
+        'fig_genres_count': plot(fig_genres_count, output_type='div') if fig_genres_count else "<p>Немає даних</p>",
+        'fig_genres_price': plot(fig_genres_price, output_type='div') if fig_genres_price else "<p>Немає даних</p>",
+        'fig_authors_price': plot(fig_authors_price, output_type='div') if fig_authors_price else "<p>Немає даних</p>",
+        'fig_top_authors': plot(fig_top_authors, output_type='div') if fig_top_authors else "<p>Немає даних</p>",
+        'fig_publishers_price': plot(fig_publishers_price, output_type='div') if fig_publishers_price else "<p>Немає даних</p>",
+        'fig_expensive_pub': plot(fig_expensive_pub, output_type='div') if fig_expensive_pub else "<p>Немає даних</p>",
+        'fig_store_sales': plot(fig_store_sales, output_type='div') if fig_store_sales else "<p>Немає даних</p>",
+        'fig_store_count': plot(fig_store_count, output_type='div') if fig_store_count else "<p>Немає даних</p>",
+    }
+
+
+def dashboard_page(request):
+    try:
+        context = get_dashboard_figures()
+        return render(request, 'catalog/dashboard.html', context)
+    except Exception as e:
+        print(e)
+        return render(request, 'catalog/error.html', status=500)
+
+
+@api_view(['GET'])
+def dashboard_view(request):
+    figures = get_dashboard_figures()
+    return Response(figures)
+
+@api_view(['GET'])
+def genres_stats_api(request):
+    return Response(list(StatsRepo.genres_with_books_and_avg_price()))
+
+@api_view(['GET'])
+def authors_avg_price_api(request):
+    return Response(list(StatsRepo.authors_avg_book_price()))
+
+@api_view(['GET'])
+def publishers_stats_api(request):
+    return Response(list(StatsRepo.publishers_avg_price()))
+
+@api_view(['GET'])
+def top_authors_api(request):
+    return Response(list(StatsRepo.top_authors_by_book_count()))
+
+@api_view(['GET'])
+def expensive_publishers_api(request):
+    return Response(list(StatsRepo.expensive_publishers()))
+
+@api_view(['GET'])
+def store_sales_api(request):
+    return Response(list(StatsRepo.store_sales_stats()))
+
 
 
 def error_404(request, exception):

@@ -19,4 +19,12 @@ urlpatterns = [
     path("books/stats/overall/", views.book_overall_stats),
     path("genres/stats/", views.genre_stats),
     path("publishers/stats/", views.publisher_stats),
+    path('stats/genres/', views.genres_stats_api, name='genres_stats_api'),
+    path('stats/authors/', views.authors_avg_price_api, name='authors_avg_price_api'),
+    path('stats/publishers/', views.publishers_stats_api, name='publishers_stats_api'),
+    path('stats/top_authors/', views.top_authors_api, name='top_authors_api'),
+    path('stats/expensive_publishers/', views.expensive_publishers_api, name='expensive_publishers_api'),
+    path('stats/store_sales/', views.store_sales_api, name='store_sales_api'),
+    path('dashboard/page/', views.dashboard_page, name='dashboard_page'),
+    path('dashboard/api/', views.dashboard_view, name='dashboard_api'),
 ]

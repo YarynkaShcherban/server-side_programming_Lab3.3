@@ -1,0 +1,37 @@
+{% extends "catalog/base.html" %}
+{% block content %}
+<h1>Аналітичний дашборд</h1>
+
+<div>
+    <h2>Кількість книг по жанрах</h2>
+    {{ fig_genres_count|safe }}
+</div>
+<div>
+    <h2>Середня ціна книг по жанрах</h2>
+    {{ fig_genres_price|safe }}
+</div>
+<div>
+    <h2>Середня ціна книг по авторах</h2>
+    {{ fig_authors_price|safe }}
+</div>
+<div>
+    <h2>Топ авторів за кількістю книг</h2>
+    {{ fig_top_authors|safe }}
+</div>
+<div>
+    <h2>Середня ціна книг по видавництвах</h2>
+    {{ fig_publishers_price|safe }}
+</div>
+<div>
+    <h2>Дорогі видавництва</h2>
+    {{ fig_expensive_pub|safe }}
+</div>
+<div>
+    <h2>Сума продажів по магазинах</h2>
+    {{ fig_store_sales|safe }}
+</div>
+<div>
+    <h2>Кількість продажів по магазинах</h2>
+    {{ fig_store_count|safe }}
+</div>
+{% endblock %}
