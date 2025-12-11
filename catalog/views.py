@@ -73,53 +73,37 @@ def book_list_by_publisher(request, publisher_id):
         return render(request, "errors/500.html", status=500)
 
 
-# # треба якимось чином через API робити
-# def get_book_stats():
-#     return {
-#         "overall": book_repo.get_overall_stats(),
-#         "genres": genre_repo.get_stats(),
-#         "publishers": publisher_repo.get_stats(),
-#     }
-
-
-# # треба якимось чином через API робити
-# def book_stats(request):
-#     try:
-#         stats = get_book_stats()
-#         books = book_repo.get_all_with_related()
-#         return render(request, "catalog/stats.html", {
-#             "stats": stats,
-#             "books": books,
-#         })
-#     except Exception as ex:
-#         print("Помилка stats:", ex)
-#         return render(request, "errors/500.html", status=500)
-
-
 def get_book_stats():
-    try:
-        return {
-            "overall": book_api.client.get("books/stats/overall/"),
-            "genres": genre_api.client.get("genres/stats/"),
-            "publishers": publisher_api.client.get("publishers/stats/"),
-        }
-    except Exception as ex:
-        print("Помилка get_book_stats:", ex)
-        return {
-            "overall": {},
-            "genres": {},
-            "publishers": {},
-        }
+    stats = {
+        "overall": {},
+        "genres": [],
+        "publishers": [],
+    }
+
+    overall = book_api.client.get("catalog/books/stats/overall/")
+    if isinstance(overall, dict) and not overall.get("error"):
+        stats["overall"] = overall
+    else:
+        stats["overall"] = {"avg_price": 0, "total_books": 0}
+
+    genres = genre_api.client.get("catalog/genres/stats/")
+    if isinstance(genres, list):
+        stats["genres"] = genres
+
+    publishers = publisher_api.client.get("catalog/publishers/stats/")
+    if isinstance(publishers, list):
+        stats["publishers"] = publishers
+    return stats
 
 
 def book_stats(request):
     try:
         stats = get_book_stats()
-        books = []
         try:
             books = book_api.get_all_books()
         except Exception as ex_books:
             print("Помилка завантаження books через API:", ex_books)
+            books = []
 
         return render(request, "catalog/stats.html", {
             "stats": stats,
@@ -171,6 +155,7 @@ def book_update(request, book_id):
 
 
 def book_create(request):
+    response = None
     try:
         if request.method == "POST":
             form = BookForm(request.POST, request.FILES)
@@ -189,7 +174,7 @@ def book_create(request):
 
                 if response.get("book_id"):
                     return redirect("catalog:book_list")
-                return render(request, "errors/400.html", status=400)
+
         form = BookForm()
         return render(request, "catalog/form.html", {"form": form})
     except Exception as ex:

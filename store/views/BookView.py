@@ -18,6 +18,22 @@ class BookViewSet(BaseViewSet):
             return Response(self.serializer_class(book).data, status=201)
         return Response(serializer.errors, status=400)
 
+    def update(self, request, pk=None):
+        try:
+            instance = uow.books.get_by_id(pk)
+            if not instance:
+                return Response({"detail": "Книгу не знайдено."}, status=400)
+            serializer = self.serializer_class(
+                instance, data=request.data, partial=True)
+            if serializer.is_valid():
+                book = serializer.save()
+                return Response(self.serializer_class(book).data)
+            return Response(serializer.errors, status=400)
+
+        except Exception as e:
+            print(f"Помилка оновлення: {e}")
+            return Response({"detail": "Внутрішня помилка сервера при оновленні."}, status=500)
+
     @action(detail=False, methods=['get'])
     def cheaper_than(self, request):
         price = request.query_params.get('price')
