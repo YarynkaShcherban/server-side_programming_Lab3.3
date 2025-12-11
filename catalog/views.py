@@ -6,7 +6,7 @@ from django.http import (
     HttpResponseForbidden,
     HttpResponseServerError,
 )
-from store.models import Book, Genre, Publisher
+from store.models import Book, Author, Genre, Publisher
 from .forms import BookForm
 from .ApiManager import *
 from store.repositories.BookRepo import BookRepo
@@ -19,7 +19,6 @@ genre_repo = GenreRepo()
 publisher_repo = PublisherRepo()
 
 
-# Робе через API
 def book_list(request):
     try:
         books = book_api.get_all_books()
@@ -37,7 +36,6 @@ def book_list(request):
         return render(request, "errors/500.html", status=500)
 
 
-# Робе через API
 def book_list_by_genre(request, genre_id):
     try:
         current_genre = genre_api.get_by_id(genre_id)
@@ -55,7 +53,6 @@ def book_list_by_genre(request, genre_id):
         return render(request, "errors/500.html", status=500)
 
 
-# Робе через API
 def book_list_by_publisher(request, publisher_id):
     try:
         current_publisher = publisher_api.get_by_id(publisher_id)
@@ -76,20 +73,54 @@ def book_list_by_publisher(request, publisher_id):
         return render(request, "errors/500.html", status=500)
 
 
-# треба якимось чином через API робити
+# # треба якимось чином через API робити
+# def get_book_stats():
+#     return {
+#         "overall": book_repo.get_overall_stats(),
+#         "genres": genre_repo.get_stats(),
+#         "publishers": publisher_repo.get_stats(),
+#     }
+
+
+# # треба якимось чином через API робити
+# def book_stats(request):
+#     try:
+#         stats = get_book_stats()
+#         books = book_repo.get_all_with_related()
+#         return render(request, "catalog/stats.html", {
+#             "stats": stats,
+#             "books": books,
+#         })
+#     except Exception as ex:
+#         print("Помилка stats:", ex)
+#         return render(request, "errors/500.html", status=500)
+
+
 def get_book_stats():
-    return {
-        "overall": book_repo.get_overall_stats(),
-        "genres": genre_repo.get_stats(),
-        "publishers": publisher_repo.get_stats(),
-    }
+    try:
+        return {
+            "overall": book_api.client.get("books/stats/overall/"),
+            "genres": genre_api.client.get("genres/stats/"),
+            "publishers": publisher_api.client.get("publishers/stats/"),
+        }
+    except Exception as ex:
+        print("Помилка get_book_stats:", ex)
+        return {
+            "overall": {},
+            "genres": {},
+            "publishers": {},
+        }
 
 
-# треба якимось чином через API робити
 def book_stats(request):
     try:
         stats = get_book_stats()
-        books = book_repo.get_all_with_related()
+        books = []
+        try:
+            books = book_api.get_all_books()
+        except Exception as ex_books:
+            print("Помилка завантаження books через API:", ex_books)
+
         return render(request, "catalog/stats.html", {
             "stats": stats,
             "books": books,
@@ -99,14 +130,13 @@ def book_stats(request):
         return render(request, "errors/500.html", status=500)
 
 
-# Робе через API
 def book_detail(request, book_id):
     try:
-        book = book_api.get_by_id_with_related(
-            book_id)  # ЦЕ НОВА ФУНКЦІЯ в BookRepo!
-        if not book:
-            return render(request, "errors/404.html", status=404)
-
+        book = None
+        try:
+            book = book_api.get_by_id_with_related(book_id)
+        except Exception as ex_book:
+            print("Помилка завантаження book через API:", ex_book)
         if not book:
             return render(request, "errors/404.html", status=404)
 
@@ -121,25 +151,6 @@ def book_detail(request, book_id):
         return render(request, "errors/400.html", status=400)
 
 
-# треба якимось чином через API робити
-def book_create(request):
-    try:
-        if request.method == "POST":
-            form = BookForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.save()
-                return redirect("catalog:book_list")
-
-            return render(request, "errors/400.html", status=400)
-
-        form = BookForm()
-        return render(request, "catalog/form.html", {"form": form})
-    except Exception as ex:
-        print("Помилка create:", ex)
-        return render(request, "errors/500.html", status=500)
-
-
-# треба якимось чином через API робити
 def book_update(request, book_id):
     try:
         book = book_repo.get_by_id(book_id)
@@ -159,7 +170,33 @@ def book_update(request, book_id):
         return render(request, "errors/500.html", status=500)
 
 
-# Робе через API
+def book_create(request):
+    try:
+        if request.method == "POST":
+            form = BookForm(request.POST, request.FILES)
+            if form.is_valid():
+                data = form.cleaned_data
+
+                data['authors'] = [a.author_id for a in data.pop('author', [])]
+                data['genres'] = [g.genre_id for g in data.pop('genres', [])]
+                data['publisher'] = data['publisher'].publisher_id
+
+                image_file = request.FILES.get("image")
+                response = book_api.create(
+                    data=data,
+                    image_file=image_file
+                )
+
+                if response.get("book_id"):
+                    return redirect("catalog:book_list")
+                return render(request, "errors/400.html", status=400)
+        form = BookForm()
+        return render(request, "catalog/form.html", {"form": form})
+    except Exception as ex:
+        print("Помилка create:", ex)
+        return render(request, "errors/500.html", status=500)
+
+
 def book_delete(request, book_id):
     try:
         book = book_api.get_by_id(book_id)

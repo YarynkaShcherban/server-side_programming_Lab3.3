@@ -90,6 +90,25 @@ class BookSerializer(serializers.ModelSerializer):
             GenreBook.objects.create(genre_id=g_id, book=book)
         return book
 
+    def update(self, instance, validated_data):
+        author_ids = validated_data.pop('authors', None)
+        genre_ids = validated_data.pop('genres', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if author_ids is not None:
+            AuthorBook.objects.filter(book=instance).delete()
+            for a_id in author_ids:
+                AuthorBook.objects.create(author_id=a_id, book=instance)
+
+        if genre_ids is not None:
+            GenreBook.objects.filter(book=instance).delete()
+            for g_id in genre_ids:
+                GenreBook.objects.create(genre_id=g_id, book=instance)
+        return instance
+
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
